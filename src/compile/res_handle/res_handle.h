@@ -1,8 +1,13 @@
+#include <stdbool.h>
+
 typedef enum TOKEN_RES {
     TOKEN_MATCHED,
     TOKEN_UNMATCH,
     TOKEN_UNEXPECTED_END,
 } TOKEN_RES;
+
+// print an error message and quit
+void panic(const char *err_msg);
 
 /**
  * extract successful results from a token matching related result, panic and exit on error
