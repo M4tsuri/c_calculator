@@ -1,6 +1,6 @@
 #include <stdbool.h>
 
-typedef enum TOKEN_RES {
+typedef enum _TOKEN_RES {
     TOKEN_MATCHED,
     TOKEN_UNMATCH,
     TOKEN_UNEXPECTED_END,

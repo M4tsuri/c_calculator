@@ -1,5 +1,4 @@
 #include "tokenize.h"
-#include "res_handle.h"
 #include <stdlib.h>
 #include <string.h>
 #include <regex.h>
@@ -35,7 +34,7 @@ TOKEN_RES match_str(char *str, Buffer *src) {
 }
 
 TOKEN_RES match_num(long double *res, Buffer *src) {
-
+    return TOKEN_UNMATCH;
 }
 
 TOKEN_RES peek_str(char *str, Buffer *src) {
@@ -65,7 +64,7 @@ TOKEN_RES peek_pattern(const char *pattern, Buffer *buf) {
         exit(-1);
     }
     regmatch_t match;
-    regexec(pattern, &buf->src[buf->cur], 1, &match, 0);
+    regexec(&regex, &buf->src[buf->cur], 1, &match, 0);
     if (match.rm_so != 0) {
         log_error("internal error: invalid usage of peek_pattern, can only match from begining of line.");
         exit(-1);

@@ -1,4 +1,6 @@
-#include "../res_handle/res_handle.h"
+#include "res_handle.h"
+#include <stdio.h>
+
 // the maxinum length of a token
 #define MAX_TOKEN_SIZE 256
 
