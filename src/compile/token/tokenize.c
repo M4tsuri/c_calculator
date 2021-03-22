@@ -1,7 +1,9 @@
 #include "tokenize.h"
-#include "../res_handle/res_handle.h"
+#include "res_handle.h"
 #include <stdlib.h>
 #include <string.h>
+#include <regex.h>
+#include "log.h"
 
 /**
  * move src->cur to the index of next non-empty charactor and update src->cur_line correspondingly
@@ -50,4 +52,25 @@ TOKEN_RES peek_str(char *str, Buffer *src) {
 
 TOKEN_RES peek_num(Buffer *src) {
     
+}
+
+TOKEN_RES match_pattern(const char *pattern, char *dest, Buffer *buf) {
+    return TOKEN_UNMATCH;
+}
+
+TOKEN_RES peek_pattern(const char *pattern, Buffer *buf) {
+    regex_t regex;
+    if (regcomp(&regex, pattern, 0) != 0) {
+        log_error("Internal error: regex compile failed.");
+        exit(-1);
+    }
+    regmatch_t match;
+    regexec(pattern, &buf->src[buf->cur], 1, &match, 0);
+    if (match.rm_so != 0) {
+        log_error("internal error: invalid usage of peek_pattern, can only match from begining of line.");
+        exit(-1);
+    }
+    
+    
+
 }

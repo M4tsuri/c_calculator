@@ -1,25 +1,15 @@
-#define MAX_OPT_NUM 8
-
-#define CREATE_OPT(s, l, h) \\
-while (0) { \\
-    Opt *opt = (Opt *) malloc(sizeof(Opt)); \\
-    opt->short_form = s; \\
-    opt->long_form = l; \\
-    opt->help_msg = h; \\
-};
-
-typedef struct Opt {
-    char short_form;
-    char *long_form;
-    char *help_msg;
-} Opt;
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include "log.h"
 
 /**
- * stores all options
+ * get input file, this file must exist
  */
-typedef struct Opts {
-    unsigned int num;
-    Opt *opts[MAX_OPT_NUM];
-} Opts;
+FILE *get_src(int argc, char **argv);
 
-
+/**
+ * get output file, this file cannot exist before
+ */
+FILE *get_dest(int argc, char **argv);
