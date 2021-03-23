@@ -53,3 +53,8 @@ void *next(Pool *p) {
     p->cur += p->item_size;
     return res;
 }
+
+void delete_pool(Pool *p) {
+    free(p->buf);
+    free(p);
+}

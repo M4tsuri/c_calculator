@@ -48,3 +48,6 @@ void reset_iter(Pool *p);
  * remeber to call reset_iter before a second iteration
  */
 void *next(Pool *p);
+
+// free all memory used by the pool
+void delete_pool(Pool *p);

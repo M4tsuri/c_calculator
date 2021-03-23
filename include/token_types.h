@@ -38,9 +38,9 @@ typedef enum TokenType {
 
 typedef struct Token {
     TokenType type;
-    union content {
+    union {
         DeclType decl;
         long double number;
         OpType op;
-    };
+    } content;
 } Token;

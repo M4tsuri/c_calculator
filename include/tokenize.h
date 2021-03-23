@@ -1,6 +1,7 @@
 #include "res_handle.h"
 #include "token_types.h"
 #include <stdio.h>
+#include "pool.h"
 
 // the maxinum length of a token
 #define MAX_TOKEN_SIZE 256
@@ -71,4 +72,11 @@ TOKEN_RES peek_str(char *str, Buffer *src);
  */
 TOKEN_RES peek_num(Buffer *src);
 
-
+/**
+ * split the source string into tokens
+ * store the tokens in a pool and return the pool
+ * @param src: source code string
+ * @param len: length of source code
+ * @return a pool of tokens
+ */
+Pool *tokenize(char *src, size_t len);

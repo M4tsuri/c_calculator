@@ -71,3 +71,6 @@ TOKEN_RES peek_pattern(const char *pattern, Buffer *buf) {
     }
 }
 
+Pool *tokenize(char *src, size_t len) {
+    return NULL;
+}

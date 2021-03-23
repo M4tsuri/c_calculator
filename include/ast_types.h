@@ -116,10 +116,10 @@ typedef struct Function {
 typedef struct Symbol {
     TidType tid;
     SYMBOL_TYPE type;
-    union content {
+    union {
         Variable *variable;
         Function *function;
-    };
+    } content;
 } Symbol;
 
 /**
@@ -127,10 +127,10 @@ typedef struct Symbol {
  */
 typedef struct Value {
     VALUE_TYPE type;
-    union content {
+    union {
         long long int int_val;
         long double float_val;
-    };
+    } content;
 } Value;
 
 /* a varibale represents either an integer or a float number */
@@ -179,13 +179,13 @@ typedef struct ParenthesesExpr {
  */
 typedef struct Expr {
     EXPR_TYPE type;
-    union content {
+    union {
         BinExpr *bin_expr;
         UnaryExpr *unary_expr;
         ParenthesesExpr *paren_expr;
         Value *value;
         Variable *variable;
-    };
+    } content;
 } Expr;
 
 /**
@@ -211,10 +211,10 @@ typedef struct Assignment {
 typedef struct Statement {
     TidType tid;
     STAT_TYPE type;
-    union content {
+    union {
         ProcedureCall *call;
         Assignment *assign;
-    };
+    } content;
 } Statement;
 
 /**
