@@ -1,4 +1,5 @@
 #include "res_handle.h"
+#include "token_types.h"
 #include <stdio.h>
 
 // the maxinum length of a token
@@ -69,3 +70,5 @@ TOKEN_RES peek_str(char *str, Buffer *src);
  * @return TOKEN_RES::TOKEN_UNMATCH if string not matched, and TOKEN_RES::TOKEN_MATCHED vice versa, others when error occurrs
  */
 TOKEN_RES peek_num(Buffer *src);
+
+

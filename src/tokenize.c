@@ -69,7 +69,5 @@ TOKEN_RES peek_pattern(const char *pattern, Buffer *buf) {
         log_error("internal error: invalid usage of peek_pattern, can only match from begining of line.");
         exit(-1);
     }
-    
-    
-
 }
+
