@@ -1,5 +1,5 @@
 #include "res_handle.h"
-#include "log.h"
+#include "utils.h"
 #include <stdlib.h>
 
 TOKEN_RES token_unwrap(TOKEN_RES res, unsigned line) {

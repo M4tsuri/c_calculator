@@ -28,7 +28,21 @@ char *strtab_get(StringTable *s, size_t idx) {
     return &s->buf[s->offsets[idx]];
 }
 
-void strtab_add(StringTable *s, char *str, unsigned int len) {
+int strtab_find(StringTable *s, char *str, unsigned int len) {
+    for (int i = 0; i < s->offset_num; ++i) {
+        if (strncmp(&s->buf[s->offsets[i]], str, len) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+unsigned int strtab_add(StringTable *s, char *str, unsigned int len) {
+    int idx = strtab_find(s, str, len);
+    if (idx != -1) {
+        return idx;
+    }
+    
     size_t offset = s->offsets[s->offset_num];
     
     // deal with the condition when buffer is not large enough
@@ -49,4 +63,5 @@ void strtab_add(StringTable *s, char *str, unsigned int len) {
     }
 
     s->offsets[s->offset_num] = offset + len + 1;
+    return s->offset_num - 1;
 }

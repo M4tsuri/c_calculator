@@ -51,5 +51,7 @@ typedef struct Token {
         long double number;
         UnOpType un_op;
         BinOpType bin_op;
+        // the index of name in strtab
+        unsigned int name_idx;
     } content;
 } Token;

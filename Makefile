@@ -4,7 +4,7 @@ INC := ./include
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 LDFLAGS := 
-CFLAGS := -I$(INC)
+CFLAGS := -I$(INC) -g
 
 all: main
 

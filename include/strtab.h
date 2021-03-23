@@ -39,4 +39,4 @@ char *strtab_get(StringTable *s, size_t idx);
  * @param str: the orginal string
  * @param len: the length of the string
  */
-void strtab_add(StringTable *s, char *str, unsigned int len);
+unsigned int strtab_add(StringTable *s, char *str, unsigned int len);

@@ -5,7 +5,7 @@
 #include "strtab.h"
 
 // the maxinum length of a token
-#define MAX_TOKEN_SIZE 256
+#define MAX_TOKEN_SIZE 63
 
 typedef struct Buffer {
     // the length of buffer
