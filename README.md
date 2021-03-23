@@ -76,5 +76,8 @@ letter            = "A" | "B" | "C" | "D" | "E" | "F" | "G"
   
 integer           = digit, {digit};
 float             = digit, {digit}, ".", digit, {digit};
-
 ```
+
+由EBNF定义得到解析token的自动机构造如下：
+
+![](./resources/token_automaton.svg)

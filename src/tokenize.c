@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <regex.h>
-#include "log.h"
 
 /**
  * move src->cur to the index of next non-empty charactor and update src->cur_line correspondingly
@@ -71,6 +70,32 @@ TOKEN_RES peek_pattern(const char *pattern, Buffer *buf) {
     }
 }
 
-Pool *tokenize(char *src, size_t len) {
+// entrance of the automaton for parsing tokens
+void tokenize(Pool *token_pool, StringTable *strtab, Buffer *buf) {
+    Token *t = pool_use(token_pool);
+    
+    
     return NULL;
+}
+
+void delete_buffer(Buffer *buf) {
+    free(buf->src);
+    free(buf);
+}
+
+Buffer *create_buffer(FILE *src) {
+    Buffer *buf = (Buffer *) malloc(sizeof(Buffer));
+
+    // get the length of original source code
+    fseek(src, 0, SEEK_END);
+    buf->len = ftell(src);
+    rewind(src);
+
+    // read source code to buffer
+    buf->src = (char *) malloc(buf->len);
+    fread(buf->src, buf->len, 1, src);
+    buf->cur = 0;
+    buf->cur_line = 1;
+    buf->free = delete_buffer;
+    return buf;
 }

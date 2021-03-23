@@ -3,13 +3,17 @@ typedef enum DeclType {
     DECL_FLOAT,
 } DeclType;
 
-typedef enum OpType {
-    OP_ADD,
-    OP_SUB,
-    OP_MUL,
-    OP_DIV,
-    OP_ASSIGN
-} OpType;
+typedef enum BinOpType {
+    BINOP_ADD,
+    BINOP_SUB,
+    BINOP_MUL,
+    BINOP_DIV,
+} BinOpType;
+
+typedef enum UnOpType {
+    UNOP_POS,
+    UNOP_NEG
+} UnOpType;
 
 /**
  * for a program
@@ -27,8 +31,12 @@ typedef enum OpType {
  */
 typedef enum TokenType {
     TOKEN_NUMBER,
-    TOKEN_SYMBOL,       // including variable name and function name
-    TOKEN_OP,
+    TOKEN_DSYMBOL,       // including variable name and function name
+    TOKEN_RSYMBOL,
+    TOKEN_LSYMBOL,
+    TOKEN_UNOP,
+    TOKEN_ASSIGN,
+    TOKEN_BINOP,
     TOKEN_END,
     TOKEN_SEMICOLON,
     TOKEN_DECL,
@@ -41,6 +49,7 @@ typedef struct Token {
     union {
         DeclType decl;
         long double number;
-        OpType op;
+        UnOpType un_op;
+        BinOpType bin_op;
     } content;
 } Token;

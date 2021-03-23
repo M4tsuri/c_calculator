@@ -1,0 +1,48 @@
+digraph G {
+    // the begining of a statement, lsymbol represents the assigned variable or a function 
+    "TOKEN_SEMICOLON" -> "TOKEN_LSYMBOL";
+    "TOKEN_SEMICOLON" -> "TOKEN_DECL";
+    
+    // a declaration, the declared symbol is dsymbol
+    "TOKEN_DECL" -> "TOKEN_DSYMBOL" -> "TOKEN_SEMICOLON";
+    
+    // a lsymbol is at the start of an assign or a function call
+    "TOKEN_LSYMBOL" -> "TOKEN_ASSIGN";
+    "TOKEN_LSYMBOL" -> "TOKEN_OPEN_PAREN";
+    
+    // an expression is the rhs of assign
+    // expressions must start with '(', symbol or number
+    "TOKEN_ASSIGN" -> "TOKEN_OPEN_PAREN";
+    "TOKEN_ASSIGN" -> "TOKEN_RSYMBOL";
+    "TOKEN_ASSIGN" -> "TOKEN_NUMBER";
+    "TOKEN_ASSIGN" -> "TOKEN_UNOP";
+    
+    // '(' is followed by an expression
+    "TOKEN_UNOP" -> "TOKEN_OPEN_PAREN";
+    "TOKEN_UNOP" -> "TOKEN_RSYMBOL";
+    "TOKEN_UNOP" -> "TOKEN_NUMBER";
+    
+    // '(' is followed by an expression
+    "TOKEN_OPEN_PAREN" -> "TOKEN_OPEN_PAREN";
+    "TOKEN_OPEN_PAREN" -> "TOKEN_RSYMBOL";
+    "TOKEN_OPEN_PAREN" -> "TOKEN_NUMBER";
+    "TOKEN_OPEN_PAREN" -> "TOKEN_UNOP";
+    
+    // a rsymbol or number is followed by a binop
+    "TOKEN_RSYMBOL" -> "TOKEN_BINOP";
+    "TOKEN_NUMBER" -> "TOKEN_BINOP";
+    
+    // a binop is followed by an expression (cannot start with an unary op)
+    "TOKEN_BINOP" -> "TOKEN_OPEN_PAREN";
+    "TOKEN_BINOP" -> "TOKEN_RSYMBOL";
+    "TOKEN_BINOP" -> "TOKEN_NUMBER";
+    
+    "TOKEN_OPEN_PAREN" -> "TOKEN_SEMICOLON";
+    "TOKEN_RSYMBOL" -> "TOKEN_SEMICOLON";
+    "TOKEN_NUMBER" -> "TOKEN_SEMICOLON";
+    
+    
+    "TOKEN_OPEN_PAREN" -> "TOKEN_END";
+    "TOKEN_RSYMBOL" -> "TOKEN_END";
+    "TOKEN_NUMBER" -> "TOKEN_END";
+}

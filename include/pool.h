@@ -22,6 +22,7 @@ typedef struct Pool {
     void *buf;
     // pointer pointing to current object in pool
     void *cur;
+    void (*free)(struct Pool *);
 } Pool;
 
 /**
@@ -35,7 +36,7 @@ Pool *create_pool(size_t item_size);
  * we suppose that after calling this method, the returned space will be used
  * so we add p->item_num by one
  */
-void *use(Pool *p);
+void *pool_use(Pool *p);
 
 /**
  * set cur pointer to the beginning of buffer
@@ -47,7 +48,7 @@ void reset_iter(Pool *p);
  * and update the p->cur field.
  * remeber to call reset_iter before a second iteration
  */
-void *next(Pool *p);
+void *pool_next(Pool *p);
 
 // free all memory used by the pool
 void delete_pool(Pool *p);

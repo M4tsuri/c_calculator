@@ -3,7 +3,10 @@
 typedef enum _TOKEN_RES {
     TOKEN_MATCHED,
     TOKEN_UNMATCH,
+    // unexpected end of file
     TOKEN_UNEXPECTED_END,
+    // normal end of file (end with ".")
+    TOKEN_EOF
 } TOKEN_RES;
 
 // print an error message and quit

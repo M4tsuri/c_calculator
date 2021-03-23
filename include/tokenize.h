@@ -2,15 +2,21 @@
 #include "token_types.h"
 #include <stdio.h>
 #include "pool.h"
+#include "strtab.h"
 
 // the maxinum length of a token
 #define MAX_TOKEN_SIZE 256
 
 typedef struct Buffer {
+    // the length of buffer
     unsigned int len;
+    // offset of the last unmatched non-empty charactor
     unsigned int cur;
+    // current line number in source file 
     unsigned int cur_line;
+    // the buffer containing the string to be processed
     char *src;
+    void (*free)(struct Buffer *);
 } Buffer;
 
 /**
@@ -75,8 +81,7 @@ TOKEN_RES peek_num(Buffer *src);
 /**
  * split the source string into tokens
  * store the tokens in a pool and return the pool
- * @param src: source code string
- * @param len: length of source code
- * @return a pool of tokens
+ * @param src: source code buffer
+ * @param p: the token pool
  */
-Pool *tokenize(char *src, size_t len);
+void tokenize(Pool *p, StringTable *strtab, Buffer *src);
