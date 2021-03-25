@@ -72,8 +72,9 @@ TOKEN_RES _match_pattern(const char *pattern, char *dest, Buffer *buf, bool cost
         exit(-1);
     }
 
+    strncpy(dest, &buf->src[buf->cur], match.rm_eo);
+
     if (cost) {
-        strncpy(dest, &buf->src[buf->cur], match.rm_eo);
         buf->cur += match.rm_eo;
         ignore_empty(buf);
     }
@@ -86,37 +87,89 @@ TOKEN_RES match_pattern(const char *pattern, char *dest, Buffer *buf) {
     return _match_pattern(pattern, dest, buf, true);
 }
 
-TOKEN_RES peek_pattern(const char *pattern, Buffer *buf) {
-    return _match_pattern(pattern, NULL, buf, false);
+TOKEN_RES peek_pattern(const char *pattern, char *dest, Buffer *buf) {
+    return _match_pattern(pattern, dest, buf, false);
 }
 
 /**
- * @return the index of the symbol in strtab on success, exit with error message on failure
+ * @return matched or not
  */
-unsigned parse_symbol(StringTable *strtab, Buffer *buf) {
+bool parse_symbol(StringTable *strtab, Buffer *buf, int *idx) {
     char symbol[MAX_TOKEN_SIZE + 1] = {0};
     if (match_pattern(REGEX_SYM, symbol, buf) != TOKEN_MATCHED) {
-        log_error("line %u: expect a symbol here.", buf->cur_line);
-        exit(-1);
+        return false;
     }
 
     size_t token_len = strlen(symbol);
-    return strtab_add(strtab, symbol, token_len);
+    *idx = strtab_add(strtab, symbol, token_len);
+    return true;
 }
 
+/**
+ * expect a semicolon in buffer
+ */ 
+bool parse_semicolon(Buffer *buf) {
+    if (token_unwrap(match_str(";", buf), buf->cur_line) != TOKEN_MATCHED) {
+        return false;
+    }
+    return true;
+}
 
+/**
+ * expect a eof signature
+ */
+bool parse_end(Buffer *buf) {
+    if (token_unwrap(match_str(".", buf), buf->cur_line) != TOKEN_MATCHED) {
+        return false;
+    }
+    return true;
+}
+
+bool parse_decl(Buffer *buf, DeclType *type) {
+    char token_buf[MAX_TOKEN_SIZE];
+    if (match_pattern(REGEX_DECL, token_buf, buf) != TOKEN_MATCHED) {
+        return false;
+    }
+    if (token_buf[0] == 'i') {
+        *type = DECL_INT;
+    } else {
+        *type = DECL_FLOAT;
+    }
+    return true;
+}
 
 void _tokenize(Pool *tokens, StringTable *strtab, Buffer *buf, TokenType state) {
     Token *t = pool_use(tokens);
     switch (state) {
         case TOKEN_DECL:
-            t->type = TOKEN_DSYMBOL;
-            t->content.name_idx = parse_symbol(strtab, buf);
+            if (parse_symbol(strtab, buf, &t->content.name_idx)) {
+                t->type = TOKEN_DSYMBOL;
+            } else {
+                panic(buf->cur_line, "expected symbol after declaration keyword.\n");
+            }
             break;
         case TOKEN_DSYMBOL:
-
+            if (parse_semicolon(buf)) {
+                t->type = TOKEN_SEMICOLON;
+            } else if (parse_end(buf)) {
+                t->type = TOKEN_END;
+            } else {
+                panic(buf->cur_line, "expected a semicolon or eof after declaration.\n");
+            }
+            break;
+        case TOKEN_SEMICOLON:
+            if (parse_decl(buf, &t->content.decl)) {
+                t->type = TOKEN_DECL;
+            } else if (parse_symbol(strtab, buf, &t->content.name_idx)) {
+                t->type = TOKEN_LSYMBOL;
+            } else {
+                panic(buf->cur_line, "expected a declaration or assignment.\n");
+            }
+            break;
+        case TOKEN_END:
+            return;
         default:
-            log_error("internal error: state corrupted when tokenizing.");
+            panic(buf->cur_line, "corrupted source code.");
     }
     _tokenize(tokens, strtab, buf, t->type);
 }

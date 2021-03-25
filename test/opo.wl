@@ -1,2 +1,2 @@
 int a;
-float b;
+float b.

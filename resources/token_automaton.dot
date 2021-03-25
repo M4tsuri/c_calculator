@@ -45,4 +45,5 @@ digraph G {
     "TOKEN_OPEN_PAREN" -> "TOKEN_END";
     "TOKEN_RSYMBOL" -> "TOKEN_END";
     "TOKEN_NUMBER" -> "TOKEN_END";
+    "TOKEN_DSYMBOL" -> "TOKEN_END";
 }

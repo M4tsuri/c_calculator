@@ -61,7 +61,7 @@ TOKEN_RES match_num(long double *res, Buffer *src);
  * @param buf: the source Buffer
  * @return TOKEN_RES::TOKEN_UNMATCH if string not matched, and TOKEN_RES::TOKEN_MATCHED vice versa, others when error occurrs
  */
-TOKEN_RES peek_pattern(const char *pattern, Buffer *buf);
+TOKEN_RES peek_pattern(const char *pattern, char *dest, Buffer *buf);
 
 /**
  * try to match a string in a buffer.

@@ -3,6 +3,15 @@
 #include <sys/stat.h>
 #include "utils.h"
 
+void panic(int line, char *msg, ...) {
+    va_list args;
+    va_start(args, msg);
+    fprintf(stderr, "%s[ERROR]%s line %d: ", FAIL, ENDC, line);
+    vfprintf(stderr, msg, args);
+    va_end(args);
+    exit(-1);
+}
+
 void log_error(const char *msg, ...) {
     va_list args;
     va_start(args, msg);
@@ -55,11 +64,10 @@ FILE *get_dest(int argc, char **argv) {
     FILE *file = NULL;
     for (int i = 0; i < argc; ++i) {
         if (strcmp(argv[i], "-o") == 0) {
-            if (access(argv[i + 1], F_OK) == 0) {
-                log_error("the file already exists.");
-                exit(-1);
-            }
             file = fopen(argv[i + 1], "w");
+            if (file == NULL) {
+                panic(0, "cannot open output file, check your permmision.");
+            }
             return file;
         }
     }

@@ -8,7 +8,7 @@
  *     do_something
  * }
  */
-#define FOR_EACH(item, pool) for (item = pool->cur; item != NULL; item = pool->next(pool))
+#define FOR_EACH(item, pool) for (item = pool_next(pool); item != NULL; item = pool_next(pool))
 
 /**
  *  note: once the Pool is initialized with several pushes, there won't be any push after

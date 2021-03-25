@@ -7,6 +7,7 @@ Pool *create_pool(size_t item_size) {
     q->item_size = item_size;
     q->max_item_num = 0x100;
     q->buf = s_malloc(q->max_item_num * q->item_size);
+    q->cur = q->buf;
     q->free = delete_pool;
     return q;
 }
