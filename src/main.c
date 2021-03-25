@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
                 printf("dsymbol(%s) ", strtab_get(proj->strtab, t->content.name_idx));
                 break;
             case TOKEN_SEMICOLON:
-                printf("semicolon ");
+                printf("; ");
                 break;
             case TOKEN_END:
-                printf("end ");
+                printf(". ");
                 break;
             case TOKEN_LSYMBOL:
                 printf("lsymbol(%s) ", strtab_get(proj->strtab, t->content.name_idx));
@@ -32,7 +32,22 @@ int main(int argc, char **argv) {
                 printf("number(%Lf) ", t->content.number);
                 break;
             case TOKEN_ASSIGN:
-                printf("assign ");
+                printf("= ");
+                break;
+            case TOKEN_RSYMBOL:
+                printf("rsymbol(%s) ", strtab_get(proj->strtab, t->content.name_idx));
+                break;
+            case TOKEN_UNOP:
+                printf("unop ");
+                break;
+            case TOKEN_BINOP:
+                printf("binop ");
+                break;
+            case TOKEN_LPAREN:
+                printf("( ");
+                break;
+            case TOKEN_RPAREN:
+                printf(") ");
                 break;
             default:
                 printf("none ");
