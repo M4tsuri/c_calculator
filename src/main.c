@@ -6,29 +6,33 @@
 #include "tokenize.h"
 
 int main(int argc, char **argv) {
-    FILE *src = get_src(argc, argv);
-    FILE *dest = get_dest(argc, argv);
-
-    // split source code into tokens
-    Buffer *buf = create_buffer(src);
-    Pool *tokens = create_pool(sizeof(Token));
-    StringTable *strtab = create_strtab();
-    tokenize(tokens, strtab, buf);
+    
+    Project *proj = create_project(argc, argv);
+    tokenize(proj);
 
     Token *t;
-    FOR_EACH(t, tokens) {
+    FOR_EACH(t, proj->tokens) {
         switch (t->type) {
             case TOKEN_DECL:
                 printf("decl ");
                 break;
             case TOKEN_DSYMBOL:
-                printf("dsymbol(%s) ", strtab_get(strtab, t->content.name_idx));
+                printf("dsymbol(%s) ", strtab_get(proj->strtab, t->content.name_idx));
                 break;
             case TOKEN_SEMICOLON:
                 printf("semicolon ");
                 break;
             case TOKEN_END:
-                printf("end");
+                printf("end ");
+                break;
+            case TOKEN_LSYMBOL:
+                printf("lsymbol(%s) ", strtab_get(proj->strtab, t->content.name_idx));
+                break;
+            case TOKEN_NUMBER:
+                printf("number(%Lf) ", t->content.number);
+                break;
+            case TOKEN_ASSIGN:
+                printf("assign ");
                 break;
             default:
                 printf("none ");
@@ -36,9 +40,6 @@ int main(int argc, char **argv) {
         }
     }
     // release all sources
-    FREE(buf);
-    FREE(tokens);
-    FREE(strtab);
-    
+    FREE(proj);
     return 0;
 }

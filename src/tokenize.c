@@ -4,6 +4,112 @@
 #include <regex.h>
 #include "token_regex.h"
 
+typedef struct AutomatonNode {
+    TokenType cur;
+    int next_num;
+    char *err_msg;
+    TokenType nexts[];
+} AutomatonNode;
+
+const AutomatonNode number_node = {
+    .cur = TOKEN_NUMBER,
+    .next_num = 4,
+    .nexts = {TOKEN_BINOP, TOKEN_RPAREN, TOKEN_SEMICOLON, TOKEN_END},
+    .err_msg = "invalid token after number."
+};
+
+const AutomatonNode dsymbol_node = {
+    .cur = TOKEN_DSYMBOL,
+    .next_num = 2,
+    .nexts = {TOKEN_SEMICOLON, TOKEN_END},
+    .err_msg = "invalid token after declaration."
+};
+
+const AutomatonNode rsymbol_node = {
+    .cur = TOKEN_RSYMBOL,
+    .next_num = 4,
+    .nexts = {TOKEN_BINOP, TOKEN_RPAREN, TOKEN_SEMICOLON},
+    .err_msg = "invalid token after number."
+};
+
+const AutomatonNode lsymbol_node = {
+    .cur = TOKEN_LSYMBOL,
+    .next_num = 2,
+    .nexts = {TOKEN_LPAREN, TOKEN_ASSIGN},
+    .err_msg = "expected a function call or assignment."
+};
+
+const AutomatonNode unop_node = {
+    .cur = TOKEN_UNOP,
+    .next_num = 3,
+    .nexts = {TOKEN_LPAREN, TOKEN_RSYMBOL, TOKEN_NUMBER},
+    .err_msg = "invalid token after unary operator."
+};
+
+const AutomatonNode assign_node = {
+    .cur = TOKEN_ASSIGN,
+    .next_num = 4,
+    .nexts = {TOKEN_LPAREN, TOKEN_NUMBER, TOKEN_RSYMBOL, TOKEN_UNOP},
+    .err_msg = "expected a function call or assignment."
+};
+
+const AutomatonNode binop_node = {
+    .cur = TOKEN_BINOP,
+    .next_num = 3,
+    .nexts = {TOKEN_NUMBER, TOKEN_RSYMBOL, TOKEN_LPAREN},
+    .err_msg = "invalid token after binary operator."
+};
+
+const AutomatonNode end_node = {
+    .cur = TOKEN_END,
+    .next_num = 0,
+    .nexts = {},
+    .err_msg = NULL
+};
+
+const AutomatonNode semicolon_node = {
+    .cur = TOKEN_SEMICOLON,
+    .next_num = 2,
+    .nexts = {TOKEN_LSYMBOL, TOKEN_DECL},
+    .err_msg = "expected a declaration or assignment or function call."
+};
+
+const AutomatonNode decl_node = {
+    .cur = TOKEN_DECL,
+    .next_num = 1,
+    .nexts = {TOKEN_DSYMBOL},
+    .err_msg = "expected a symbol after declaration keyword."
+};
+
+const AutomatonNode lparen_node = {
+    .cur = TOKEN_LPAREN,
+    .next_num = 5,
+    .nexts = {TOKEN_NUMBER, TOKEN_RPAREN, TOKEN_LPAREN, TOKEN_RSYMBOL, TOKEN_UNOP},
+    .err_msg = "expected a valid expression after '('."
+};
+
+const AutomatonNode rparen_node = {
+    .cur = TOKEN_RPAREN,
+    .next_num = 4,
+    .nexts = {TOKEN_BINOP, TOKEN_SEMICOLON, TOKEN_RPAREN, TOKEN_END},
+    .err_msg = "invalid token after ')'."
+};
+
+const AutomatonNode *automaton_nodes[12] = {
+    &number_node,
+    &dsymbol_node,
+    &rsymbol_node,
+    &lsymbol_node,
+    &unop_node,
+    &assign_node,
+    &binop_node,
+    &end_node,
+    &semicolon_node,
+    &decl_node,
+    &lparen_node,
+    &rparen_node,
+};
+
 /**
  * move src->cur to the index of next non-empty charactor and update src->cur_line correspondingly
  * note that space, tab and newline are all empty charactors
@@ -33,10 +139,6 @@ TOKEN_RES match_str(char *str, Buffer *src) {
     return TOKEN_MATCHED;
 }
 
-TOKEN_RES match_num(long double *res, Buffer *src) {
-    return TOKEN_UNMATCH;
-}
-
 TOKEN_RES peek_str(char *str, Buffer *src) {
     unsigned str_len = strlen(str);
     if (str_len > src->len - src->cur) {
@@ -47,10 +149,6 @@ TOKEN_RES peek_str(char *str, Buffer *src) {
         return TOKEN_MATCHED;
     }
     return TOKEN_UNMATCH;
-}
-
-TOKEN_RES peek_num(Buffer *src) {
-    
 }
 
 TOKEN_RES _match_pattern(const char *pattern, char *dest, Buffer *buf, bool cost) {
@@ -94,91 +192,165 @@ TOKEN_RES peek_pattern(const char *pattern, char *dest, Buffer *buf) {
 /**
  * @return matched or not
  */
-bool parse_symbol(StringTable *strtab, Buffer *buf, int *idx) {
+bool parse_symbol(Project *proj, Token *t) {
     char symbol[MAX_TOKEN_SIZE + 1] = {0};
-    if (match_pattern(REGEX_SYM, symbol, buf) != TOKEN_MATCHED) {
+
+    // deal with the situation where a keyword may be recognized as a symbol
+    if (peek_pattern(REGEX_DECL, symbol, proj->source_buffer) == TOKEN_MATCHED) {
+        return false;
+    }
+
+    if (match_pattern(REGEX_SYM, symbol, proj->source_buffer) != TOKEN_MATCHED) {
         return false;
     }
 
     size_t token_len = strlen(symbol);
-    *idx = strtab_add(strtab, symbol, token_len);
+    t->content.name_idx = strtab_add(proj->strtab, symbol, token_len);
     return true;
 }
 
 /**
- * expect a semicolon in buffer
+ * expect a semicolon in proj->source_buffer
  */ 
-bool parse_semicolon(Buffer *buf) {
-    if (token_unwrap(match_str(";", buf), buf->cur_line) != TOKEN_MATCHED) {
-        return false;
-    }
-    return true;
+bool parse_semicolon(Project *proj, Token *t) {
+    return token_unwrap(match_str(";", proj->source_buffer), proj->source_buffer->cur_line) == TOKEN_MATCHED;
 }
 
 /**
  * expect a eof signature
  */
-bool parse_end(Buffer *buf) {
-    if (token_unwrap(match_str(".", buf), buf->cur_line) != TOKEN_MATCHED) {
-        return false;
-    }
-    return true;
+bool parse_end(Project *proj, Token *t) {
+    return token_unwrap(match_str(".", proj->source_buffer), proj->source_buffer->cur_line) == TOKEN_MATCHED;
 }
 
-bool parse_decl(Buffer *buf, DeclType *type) {
-    char token_buf[MAX_TOKEN_SIZE];
-    if (match_pattern(REGEX_DECL, token_buf, buf) != TOKEN_MATCHED) {
-        return false;
-    }
-    if (token_buf[0] == 'i') {
-        *type = DECL_INT;
-    } else {
-        *type = DECL_FLOAT;
-    }
-    return true;
+bool parse_assign(Project *proj, Token *t) {
+    return token_unwrap(match_str("=", proj->source_buffer), proj->source_buffer->cur_line) == TOKEN_MATCHED;
 }
 
-void _tokenize(Pool *tokens, StringTable *strtab, Buffer *buf, TokenType state) {
-    Token *t = pool_use(tokens);
-    switch (state) {
-        case TOKEN_DECL:
-            if (parse_symbol(strtab, buf, &t->content.name_idx)) {
-                t->type = TOKEN_DSYMBOL;
-            } else {
-                panic(buf->cur_line, "expected symbol after declaration keyword.\n");
-            }
+bool parse_lparen(Project *proj, Token *t) {
+    return token_unwrap(match_str("(", proj->source_buffer), proj->source_buffer->cur_line) == TOKEN_MATCHED;
+}
+
+bool parse_rparen(Project *proj, Token *t) {
+    return token_unwrap(match_str(")", proj->source_buffer), proj->source_buffer->cur_line) == TOKEN_MATCHED;
+}
+
+bool parse_unop(Project *proj, Token *t) {
+    char opc;
+    if (match_pattern(REGEX_UNOP, &opc, proj->source_buffer) != TOKEN_MATCHED) {
+        return false;
+    }
+
+    switch (opc) {
+        case '+':
+            t->content.un_op = UNOP_POS;
             break;
-        case TOKEN_DSYMBOL:
-            if (parse_semicolon(buf)) {
-                t->type = TOKEN_SEMICOLON;
-            } else if (parse_end(buf)) {
-                t->type = TOKEN_END;
-            } else {
-                panic(buf->cur_line, "expected a semicolon or eof after declaration.\n");
-            }
+        case '-':
+           t->content.un_op = UNOP_NEG;
             break;
-        case TOKEN_SEMICOLON:
-            if (parse_decl(buf, &t->content.decl)) {
-                t->type = TOKEN_DECL;
-            } else if (parse_symbol(strtab, buf, &t->content.name_idx)) {
-                t->type = TOKEN_LSYMBOL;
-            } else {
-                panic(buf->cur_line, "expected a declaration or assignment.\n");
-            }
-            break;
-        case TOKEN_END:
-            return;
         default:
-            panic(buf->cur_line, "corrupted source code.");
+            panic(proj->source_buffer->cur_line, "unsupported unary operator.");
     }
-    _tokenize(tokens, strtab, buf, t->type);
+    return true;
+}
+
+bool parse_binop(Project *proj, Token *t) {
+    char opc;
+    if (match_pattern(REGEX_BINOP, &opc, proj->source_buffer) != TOKEN_MATCHED) {
+        return false;
+    }
+
+    switch (opc) {
+        case '+':
+            t->content.bin_op = BINOP_ADD;
+            break;
+        case '-':
+            t->content.bin_op = BINOP_SUB;
+            break;
+        case '*':
+            t->content.bin_op = BINOP_MUL;
+            break;
+        case '/':
+            t->content.bin_op = BINOP_DIV;
+            break;
+        default:
+            panic(proj->source_buffer->cur_line, "unsupported binary operator.");
+    }
+    return true;
+}
+
+bool parse_number(Project *proj, Token *t) {
+    char buf[MAX_TOKEN_SIZE + 1] = {0};
+    char *endptr = &buf[MAX_TOKEN_SIZE];
+    if (match_pattern(REGEX_NUM, buf, proj->source_buffer) != TOKEN_MATCHED) {
+        return false;
+    }
+
+    t->content.number = strtold(buf, &endptr);
+    return true;
+}
+
+bool parse_decl(Project *proj, Token *t) {
+    char buf[MAX_TOKEN_SIZE + 1] = {0};
+    if (match_pattern(REGEX_DECL, buf, proj->source_buffer) != TOKEN_MATCHED) {
+        return false;
+    }
+    if (buf[0] == 'i') {
+        t->content.decl = DECL_INT;
+    } else {
+        t->content.decl = DECL_FLOAT;
+    }
+    return true;
+}
+
+/**
+ * a dispatch table for parser functions
+ * note each function index in this array is corresponded to its parsing type
+ */
+const bool (*parser_funcs[12])(Project *, Token *) = {
+    parse_number,
+    parse_symbol,
+    parse_symbol,
+    parse_symbol,
+    parse_unop,
+    parse_assign,
+    parse_binop,
+    parse_end,
+    parse_semicolon,
+    parse_decl,
+    parse_lparen,
+    parse_rparen
+};
+
+bool try_parse_all(const AutomatonNode *node, Project *proj, Token *t) {
+    for (int i = 0; i < node->next_num; i++) {
+        int cur_type = node->nexts[i];
+        if (parser_funcs[cur_type](proj, t)) {
+            t->type = cur_type;
+            return true;
+        }
+    }
+    return false;
+}
+
+void _tokenize(Project *proj, TokenType state) {
+    if (state == TOKEN_END) {
+        return;
+    }
+
+    Token *t = pool_use(proj->tokens);
+
+    if (!try_parse_all(automaton_nodes[state], proj, t)) {
+        panic(proj->source_buffer->cur_line, automaton_nodes[state]->err_msg);
+    }
+    _tokenize(proj, t->type);
 }
 
 // entrance of the automaton for parsing tokens
-void tokenize(Pool *token_pool, StringTable *strtab, Buffer *buf) {
-    Token *t = pool_use(token_pool);
+void tokenize(Project *proj) {
+    Token *t = pool_use(proj->tokens);
     char first_decl[8];
-    if (match_pattern(REGEX_DECL, first_decl, buf) != TOKEN_MATCHED) {
+    if (match_pattern(REGEX_DECL, first_decl, proj->source_buffer) != TOKEN_MATCHED) {
         log_error("the program must start with a declaration.");
         exit(-1);
     }
@@ -190,27 +362,6 @@ void tokenize(Pool *token_pool, StringTable *strtab, Buffer *buf) {
         t->content.decl = DECL_FLOAT;
     }
 
-    _tokenize(token_pool, strtab, buf, t->type);
+    _tokenize(proj, t->type);
 }
 
-void delete_buffer(Buffer *buf) {
-    free(buf->src);
-    free(buf);
-}
-
-Buffer *create_buffer(FILE *src) {
-    Buffer *buf = (Buffer *) malloc(sizeof(Buffer));
-
-    // get the length of original source code
-    fseek(src, 0, SEEK_END);
-    buf->len = ftell(src);
-    rewind(src);
-
-    // read source code to buffer
-    buf->src = (char *) malloc(buf->len);
-    fread(buf->src, buf->len, 1, src);
-    buf->cur = 0;
-    buf->cur_line = 1;
-    buf->free = delete_buffer;
-    return buf;
-}

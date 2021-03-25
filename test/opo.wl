@@ -1,2 +1,3 @@
 int a;
-float b.
+float b;
+a = 3.1415926.

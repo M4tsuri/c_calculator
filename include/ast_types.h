@@ -99,15 +99,15 @@ typedef enum FUNC_TYPE {
 typedef struct Function {
     TidType tid;
     FUNC_TYPE type;
-    Symbol *symbol;
-    FunctionPrototype *prototype;
+    struct Symbol *symbol;
+    struct FunctionPrototype *prototype;
     /* 
      * we realize builtin function inside our runtime engine
      * now we only support this type of function 
      */
     int is_builtin;
 
-};
+} Function;
 
 /**
  * a symbol is an abstract of variables defined in program
@@ -117,8 +117,8 @@ typedef struct Symbol {
     TidType tid;
     SYMBOL_TYPE type;
     union {
-        Variable *variable;
-        Function *function;
+        struct Variable *variable;
+        struct Function *function;
     } content;
 } Symbol;
 
@@ -138,7 +138,7 @@ typedef struct Variable {
     TidType tid;
     VARIABLE_TYPE type;
     char *name;
-    Value *value;
+    struct Value *value;
 } Variable;
 
 /* we use function prototype to uniquely identify a function */
@@ -152,7 +152,7 @@ typedef struct FunctionPrototype {
  */
 typedef struct UnaryExpr {
     UNARY_OP_TYPE op;
-    Expr *oprand;
+    struct Expr *oprand;
 } UnaryExpr;
 
 /**
@@ -160,8 +160,8 @@ typedef struct UnaryExpr {
  */
 typedef struct BinExpr {
     BIN_OP_TYPE op;
-    Expr *lhs;
-    Expr *rhs;
+    struct Expr *lhs;
+    struct Expr *rhs;
 } BinExpr;
 
 /**
@@ -170,7 +170,7 @@ typedef struct BinExpr {
  * TODO: determain whether to add a priority field here
  */
 typedef struct ParenthesesExpr {
-    Expr *content;
+    struct Expr *content;
 } ParenthesesExpr;
 
 /**
@@ -180,11 +180,11 @@ typedef struct ParenthesesExpr {
 typedef struct Expr {
     EXPR_TYPE type;
     union {
-        BinExpr *bin_expr;
-        UnaryExpr *unary_expr;
-        ParenthesesExpr *paren_expr;
-        Value *value;
-        Variable *variable;
+        struct BinExpr *bin_expr;
+        struct UnaryExpr *unary_expr;
+        struct ParenthesesExpr *paren_expr;
+        struct Value *value;
+        struct Variable *variable;
     } content;
 } Expr;
 
@@ -193,16 +193,16 @@ typedef struct Expr {
  * arg_list = ("(", ")") | "(", {expression, ","}, expression, ")";
  */
 typedef struct ProcedureCall {
-    Function* target;
-    Expr *args[];
+    struct Function* target;
+    struct Expr *args[];
 } ProcedureCall;
 
 /**
  * assign the value of src to dest
  */
 typedef struct Assignment {
-    Variable* dest;
-    Expr *src;
+    struct Variable* dest;
+    struct Expr *src;
 } Assignment;
 
 /**
@@ -212,8 +212,8 @@ typedef struct Statement {
     TidType tid;
     STAT_TYPE type;
     union {
-        ProcedureCall *call;
-        Assignment *assign;
+        struct ProcedureCall *call;
+        struct Assignment *assign;
     } content;
 } Statement;
 
@@ -222,5 +222,5 @@ typedef struct Statement {
  */
 typedef struct Program {
     TidType tid;
-    Statement *stats[];
+    struct Statement *stats[];
 } Program;
