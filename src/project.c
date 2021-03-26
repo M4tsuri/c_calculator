@@ -4,6 +4,7 @@ void delete_project(Project *proj) {
     FREE(proj->source_buffer);
     FREE(proj->strtab);
     FREE(proj->tokens);
+    FREE(proj->symtab);
     free(proj);
 }
 
@@ -16,6 +17,7 @@ Project *create_project(int argc, char **argv) {
     proj->source_buffer = create_buffer(proj->source_file);
     proj->tokens = create_pool(sizeof(Token));
     proj->strtab = create_strtab();
+    proj->symtab = create_symtab();
     proj->free = delete_project;
     return proj;
 }

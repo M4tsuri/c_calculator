@@ -1,13 +1,5 @@
 #include "builtin.h"
-
-/* tid is a unique for assigned to each item in a program */
-typedef unsigned int TidType;
-
-/* we support integer and float number now */
-typedef enum VARIABLE_TYPE {
-    VAR_INTEGER,
-    VAR_FLOAT,
-} VARIABLE_TYPE;
+#include "symtab.h"
 
 /**
  * note that value type is different form variable type
@@ -72,6 +64,7 @@ typedef enum EXPR_TYPE {
 typedef enum STAT_TYPE {
     STAT_ASSIGN,
     STAT_CALL,
+    STAT_DECL
 } STAT_TYPE;
 
 /**
@@ -81,46 +74,6 @@ typedef enum SYMBOL_TYPE {
     SYM_VARIABLE_TYPE,
     SYM_FUNCTION,
 } SYMBOL_TYPE;
-
-/**
- * we only support builtin functions now 
- */
-typedef enum FUNC_TYPE {
-    FUNC_BUILTIN,
-    FUNC_CUSTOM,
-    FUNC_EXTERNAL,
-} FUNC_TYPE;
-
-/**
- * function is a type of symbol, 
- * we use prototype to identify a function
- * TODO: we need a target field for non-builtin functions
- */
-typedef struct Function {
-    TidType tid;
-    FUNC_TYPE type;
-    struct Symbol *symbol;
-    struct FunctionPrototype *prototype;
-    /* 
-     * we realize builtin function inside our runtime engine
-     * now we only support this type of function 
-     */
-    int is_builtin;
-
-} Function;
-
-/**
- * a symbol is an abstract of variables defined in program
- * each symbol has a tid to symplify program analysis
- */
-typedef struct Symbol {
-    TidType tid;
-    SYMBOL_TYPE type;
-    union {
-        struct Variable *variable;
-        struct Function *function;
-    } content;
-} Symbol;
 
 /**
  * represents a plain value in program or a value stored in a variable
@@ -133,19 +86,11 @@ typedef struct Value {
     } content;
 } Value;
 
-/* a varibale represents either an integer or a float number */
+/* a variable represents either an integer or a float number */
 typedef struct Variable {
-    TidType tid;
-    VARIABLE_TYPE type;
-    char *name;
+    struct Symbol *sym;
     struct Value *value;
 } Variable;
-
-/* we use function prototype to uniquely identify a function */
-typedef struct FunctionPrototype {
-    char *name;
-    SYMBOL_TYPE* args;
-} FunctionPrototype;
 
 /**
  * unary_expr = unary_op, expression;
@@ -193,7 +138,7 @@ typedef struct Expr {
  * arg_list = ("(", ")") | "(", {expression, ","}, expression, ")";
  */
 typedef struct ProcedureCall {
-    struct Function* target;
+    struct Symbol* target;
     struct Expr *args[];
 } ProcedureCall;
 
@@ -205,11 +150,15 @@ typedef struct Assignment {
     struct Expr *src;
 } Assignment;
 
+typedef struct Declaration {
+    struct Symbol *target;
+    VARIABLE_TYPE type;
+} Declaration;
+
 /**
  * a statement is either an assignment or a call
  */
 typedef struct Statement {
-    TidType tid;
     STAT_TYPE type;
     union {
         struct ProcedureCall *call;
@@ -221,6 +170,6 @@ typedef struct Statement {
  * program is a set of statement splited with ';' and end with '.'
  */
 typedef struct Program {
-    TidType tid;
+    int stats_num;
     struct Statement *stats[];
 } Program;

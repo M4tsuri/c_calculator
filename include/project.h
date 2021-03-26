@@ -3,11 +3,13 @@
 #include "strtab.h"
 #include "ast_types.h"
 #include "token_types.h"
+#include "symtab.h"
 
 typedef struct Project {
     Pool *tokens;
     Program *program;
     StringTable *strtab;
+    SymbolTable *symtab;
     FILE *source_file;
     FILE *output_file;
     // source code buffer
