@@ -46,6 +46,7 @@ typedef enum TokenType {
 
 typedef struct Token {
     TokenType type;
+    int line;
     union {
         DeclType decl;
         long double number;

@@ -4,6 +4,11 @@
 #include <regex.h>
 #include "token_regex.h"
 
+/**
+ * an Automation Node is a Node representing a state in a 
+ * transfer graph, we should know next states to make our
+ * automaton engine work.
+ */
 typedef struct AutomatonNode {
     TokenType cur;
     int next_num;
@@ -95,6 +100,10 @@ const AutomatonNode rparen_node = {
     .err_msg = "invalid token after ')'."
 };
 
+/**
+ * be aware that we use a TokenType enum to index this array
+ * so the order of nodes must be the same as what in the TokenType enum
+ */
 const AutomatonNode *automaton_nodes[12] = {
     &number_node,
     &dsymbol_node,
@@ -327,11 +336,13 @@ bool try_parse_all(const AutomatonNode *node, Project *proj, Token *t) {
         int cur_type = node->nexts[i];
         if (parser_funcs[cur_type](proj, t)) {
             t->type = cur_type;
+            t->line = proj->source_buffer->cur_line;
             return true;
         }
     }
     return false;
 }
+
 
 void _tokenize(Project *proj, TokenType state) {
     if (state == TOKEN_END) {
@@ -343,6 +354,8 @@ void _tokenize(Project *proj, TokenType state) {
     if (!try_parse_all(automaton_nodes[state], proj, t)) {
         panic(proj->source_buffer->cur_line, automaton_nodes[state]->err_msg);
     }
+
+    // expect a tail recursion elimination here
     _tokenize(proj, t->type);
 }
 
@@ -355,6 +368,11 @@ void tokenize(Project *proj) {
         exit(-1);
     }
 
+    /** 
+     * initialize the initial state
+     * note that due to the grammar limitation, the program
+     * must start with a declaration
+     */
     t->type = TOKEN_DECL;
     if (first_decl[0] == 'i') {
         t->content.decl = DECL_INT;
