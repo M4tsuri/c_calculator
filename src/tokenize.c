@@ -359,6 +359,36 @@ void _tokenize(Project *proj, TokenType state) {
     _tokenize(proj, t->type);
 }
 
+/**
+ * check whether the parentheses in source code matches
+ * if not match, exit with error message
+ */
+void paren_check(Project *proj) {
+    Token *t;
+    int match_ind = 0;
+    FOR_EACH(t, proj->tokens) {
+        switch (t->type) {
+            case TOKEN_LPAREN:
+                match_ind++;
+                break;
+            case TOKEN_RPAREN:
+                match_ind--;
+                break;
+            case TOKEN_SEMICOLON:
+                if (match_ind != 0) {
+                    panic(t->line, "parentheses not match.");
+                }
+                break;
+            case TOKEN_END:
+                if (match_ind != 0) {
+                    panic(t->line, "parentheses not match.");
+                }
+                reset_iter(proj->tokens);
+                return;
+        }
+    }
+}
+
 // entrance of the automaton for parsing tokens
 void tokenize(Project *proj) {
     Token *t = pool_use(proj->tokens);
@@ -381,5 +411,6 @@ void tokenize(Project *proj) {
     }
 
     _tokenize(proj, t->type);
+    paren_check(proj);
 }
 

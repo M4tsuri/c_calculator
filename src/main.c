@@ -5,11 +5,15 @@
 #include <sys/stat.h>
 #include "tokenize.h"
 
+#define DEBUG
+
 int main(int argc, char **argv) {
     
     Project *proj = create_project(argc, argv);
     tokenize(proj);
 
+#ifdef DEBUG
+    log_success("Tokenize finished, result is:\n");
     Token *t;
     FOR_EACH(t, proj->tokens) {
         switch (t->type) {
@@ -54,6 +58,9 @@ int main(int argc, char **argv) {
                 break;
         }
     }
+    reset_iter(proj->tokens);
+#endif
+
     // release all sources
     FREE(proj);
     return 0;
