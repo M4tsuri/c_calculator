@@ -1,4 +1,5 @@
 #include "pool.h"
+#include "utils.h"
 #define DEFAULT_MAX_SYMTAB_ITEM_NUM 0x40
 
 typedef unsigned int TidType;
@@ -17,31 +18,11 @@ typedef enum SYMBOL_TYPE {
     SYM_FUNCTION,
 } SYMBOL_TYPE;
 
-/**
- * we only support builtin functions now 
- */
-typedef enum FUNC_TYPE {
-    FUNC_BUILTIN,
-    FUNC_CUSTOM,
-    FUNC_EXTERNAL,
-} FUNC_TYPE;
-
-/**
- * function is a type of symbol, 
- * we use prototype to identify a function
- * TODO: we need a target field for non-builtin functions
- */
-typedef struct FunctionSym {
+/* a variable represents either an integer or a float number */
+typedef struct VariableSym {
     TidType tid;
-    FUNC_TYPE type;
-    struct FunctionPrototype *prototype;
-    /* 
-     * we realize builtin function inside our runtime engine
-     * now we only support this type of function 
-     */
-    int is_builtin;
-
-} FunctionSym;
+    VARIABLE_TYPE type;
+} VariableSym;
 
 /**
  * a symbol is an abstract of variables defined in program
@@ -49,37 +30,38 @@ typedef struct FunctionSym {
  */
 typedef struct Symbol {
     SYMBOL_TYPE type;
+    unsigned int name_idx;
     union {
-        struct VariableSym *variable;
-        struct FunctionSym *function;
+        struct VariableSym variable;
     } content;
 } Symbol;
 
-/* a variable represents either an integer or a float number */
-typedef struct VariableSym {
-    TidType tid;
-    VARIABLE_TYPE type;
-    char *name;
-    struct Value *value;
-} VariableSym;
-
-/* we use function prototype to uniquely identify a function */
-typedef struct FunctionPrototype {
-    char *name;
-    SYMBOL_TYPE* args;
-} FunctionPrototype;
-
 typedef struct SymbolTable {
-    size_t capacity;
-    size_t max_func_tid;
-    size_t max_var_tid;
-    size_t sym_num;
+    int capacity;
+    int max_func_tid;
+    int max_var_tid;
+    int sym_num;
     struct Symbol *symbols;
     void (*free)(struct SymbolTable *);
 } SymbolTable;
 
 SymbolTable *create_symtab();
 
-size_t symtab_push(SymbolTable *symtab, Symbol *s);
+/**
+ * insert a symbol to symbol table
+ * @param s: the symbol we want to instert, the content will be deep copied into table
+ * @return the index of this symbol in symbol table, -1 if this symbol already exists in table
+ */
+int symtab_push(SymbolTable *symtab, Symbol *s);
 
+/**
+ * get a symbol by its index in symbol table
+ */
 Symbol *symtab_get(SymbolTable *symtab, size_t idx);
+
+/**
+ * find a symbol in symbol table
+ * @param name_idx: the index of the symbol name in string table
+ * @return the index of the symbol, -1 if symbol not in symtab
+ */
+int symtab_find(SymbolTable *symtab, unsigned int name_idx);

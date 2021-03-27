@@ -47,9 +47,7 @@ program           = {statement, ";"}, statement, ".";
 
 statement         = assignment | procedure_call;
 assignment        = symbol, "=", expression;
-procedure_call    = symbol, arg_list;
-
-arg_list          = ("(", ")") | "(", {expression, ","}, expression, ")"; 
+procedure_call    = symbol, "(", expression ")";
 
 expression        = unary_expr | bin_expr | parentheses_expr | value | symbol;
 

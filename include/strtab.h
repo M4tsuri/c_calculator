@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "utils.h"
 
 #define DEFAULT_STRTAB_MAX_ITEM 0x50
 #define DEFAULT_STRTAB_MAX_SIZE 0x200

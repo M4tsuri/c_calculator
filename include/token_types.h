@@ -54,6 +54,7 @@ typedef struct Token {
         BinOpType bin_op;
         // the index of name in strtab
         unsigned int name_idx;
+        size_t rparen_idx;
     } content;
 } Token;
 

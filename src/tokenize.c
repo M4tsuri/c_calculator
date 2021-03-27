@@ -365,22 +365,23 @@ void _tokenize(Project *proj, TokenType state) {
  */
 void paren_check(Project *proj) {
     Token *t;
-    int match_ind = 0;
+    Token *lparen = NULL;
     FOR_EACH(t, proj->tokens) {
         switch (t->type) {
             case TOKEN_LPAREN:
-                match_ind++;
+                lparen = t;
                 break;
             case TOKEN_RPAREN:
-                match_ind--;
+                lparen->content.rparen_idx = pool_idx(proj->tokens, t);
+                lparen = NULL;
                 break;
             case TOKEN_SEMICOLON:
-                if (match_ind != 0) {
+                if (lparen != NULL) {
                     panic(t->line, "parentheses not match.");
                 }
                 break;
             case TOKEN_END:
-                if (match_ind != 0) {
+                if (lparen != NULL) {
                     panic(t->line, "parentheses not match.");
                 }
                 reset_iter(proj->tokens);

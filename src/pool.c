@@ -35,6 +35,26 @@ void *pool_next(Pool *p) {
     return res;
 }
 
+void *pool_get(Pool *p, size_t idx) {
+    return p->buf + idx * p->item_size;
+}
+
+size_t pool_idx(Pool *p, void *ptr) {
+    if (ptr == p->buf + p->item_size * p->item_num || (ptr - p->buf) % p->item_size != 0) {
+        panic(0, "internal error: pointer not belong to pool.");
+    }
+    return (ptr - p->buf) / p->item_size;
+}
+
+void *pool_peek(Pool *p) {
+    return p->cur;
+}
+
+void *pool_peek2(Pool *p) {
+    void *res = p->cur + p->item_size;
+    return res;
+}
+
 void delete_pool(Pool *p) {
     free(p->buf);
     free(p);

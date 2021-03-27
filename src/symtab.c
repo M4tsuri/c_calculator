@@ -1,4 +1,5 @@
 #include "symtab.h"
+#include <stdbool.h>
 
 void delete_symtab(SymbolTable *symtab) {
     free(symtab->symbols);
@@ -16,7 +17,20 @@ SymbolTable *create_symtab() {
     return symtab;
 }
 
-size_t symtab_push(SymbolTable *symtab, Symbol *s) {
+int symtab_find(SymbolTable *symtab, unsigned int name_idx) {
+    for (int i = 0; i < symtab->sym_num; ++i) {
+        if (symtab->symbols[i].name_idx == name_idx) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int symtab_push(SymbolTable *symtab, Symbol *s) {
+    if (symtab_find(symtab, s->name_idx)) {
+        return -1;
+    }
+
     if (symtab->sym_num >= symtab->capacity) {
         symtab->capacity *= 2;
         symtab->symbols = (Symbol *) s_realloc(symtab->symbols, symtab->capacity * sizeof(Symbol));
@@ -34,7 +48,7 @@ size_t symtab_push(SymbolTable *symtab, Symbol *s) {
 
 Symbol *symtab_get(SymbolTable *symtab, size_t idx) {
     if (idx >= symtab->sym_num) {
-        panic("internal error: symbol table out of bound access.");
+        panic(0, "internal error: symbol table out of bound access.");
     }
     return &symtab->symbols[idx];
 }

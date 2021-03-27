@@ -1,4 +1,4 @@
 typedef enum BUILTIN_FUNC {
-    WRITE,
+    BUILTIN_WRITE,
 } BUILTIN_FUNC;
 

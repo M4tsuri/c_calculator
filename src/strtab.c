@@ -1,4 +1,5 @@
 #include "strtab.h"
+#include "utils.h"
 
 void delete_strtab(StringTable *s) {
     free(s->buf);

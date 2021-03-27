@@ -64,16 +64,9 @@ typedef enum EXPR_TYPE {
 typedef enum STAT_TYPE {
     STAT_ASSIGN,
     STAT_CALL,
-    STAT_DECL
+    STAT_DECL,
 } STAT_TYPE;
 
-/**
- * a symbol can be either a function or a variable containing a plain value
- */
-typedef enum SYMBOL_TYPE {
-    SYM_VARIABLE_TYPE,
-    SYM_FUNCTION,
-} SYMBOL_TYPE;
 
 /**
  * represents a plain value in program or a value stored in a variable
@@ -85,12 +78,6 @@ typedef struct Value {
         long double float_val;
     } content;
 } Value;
-
-/* a variable represents either an integer or a float number */
-typedef struct Variable {
-    struct Symbol *sym;
-    struct Value *value;
-} Variable;
 
 /**
  * unary_expr = unary_op, expression;
@@ -125,11 +112,11 @@ typedef struct ParenthesesExpr {
 typedef struct Expr {
     EXPR_TYPE type;
     union {
-        struct BinExpr *bin_expr;
-        struct UnaryExpr *unary_expr;
-        struct ParenthesesExpr *paren_expr;
-        struct Value *value;
-        struct Variable *variable;
+        struct BinExpr bin_expr;
+        struct UnaryExpr unary_expr;
+        struct ParenthesesExpr paren_expr;
+        struct Value value;
+        size_t var_symid;
     } content;
 } Expr;
 
@@ -138,21 +125,20 @@ typedef struct Expr {
  * arg_list = ("(", ")") | "(", {expression, ","}, expression, ")";
  */
 typedef struct ProcedureCall {
-    struct Symbol* target;
-    struct Expr *args[];
+    BUILTIN_FUNC func;
+    struct Expr arg;
 } ProcedureCall;
 
 /**
  * assign the value of src to dest
  */
 typedef struct Assignment {
-    struct Variable* dest;
+    int dest_idx;
     struct Expr *src;
 } Assignment;
 
 typedef struct Declaration {
-    struct Symbol *target;
-    VARIABLE_TYPE type;
+    int sym_idx;
 } Declaration;
 
 /**
@@ -161,8 +147,9 @@ typedef struct Declaration {
 typedef struct Statement {
     STAT_TYPE type;
     union {
-        struct ProcedureCall *call;
-        struct Assignment *assign;
+        struct Declaration decl;
+        struct ProcedureCall call;
+        struct Assignment assign;
     } content;
 } Statement;
 
@@ -171,5 +158,5 @@ typedef struct Statement {
  */
 typedef struct Program {
     int stats_num;
-    struct Statement *stats[];
+    struct Statement *stats;
 } Program;

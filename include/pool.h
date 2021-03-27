@@ -50,5 +50,13 @@ void reset_iter(Pool *p);
  */
 void *pool_next(Pool *p);
 
+void *pool_peek(Pool *p);
+
+void *pool_peek2(Pool *p);
+
 // free all memory used by the pool
 void delete_pool(Pool *p);
+
+void *pool_get(Pool *p, size_t idx);
+
+size_t pool_idx(Pool *p, void *ptr);
