@@ -1,3 +1,5 @@
+#ifndef PROJECT_H
+#define PROJECT_H
 #include "buffer.h"
 #include "strtab.h"
 #include "ast_types.h"
@@ -17,3 +19,5 @@ typedef struct Project {
 } Project;
 
 Project *create_project(int argc, char **argv);
+
+#endif

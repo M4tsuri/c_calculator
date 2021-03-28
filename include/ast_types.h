@@ -1,5 +1,8 @@
+#ifndef AST_TYPES_H
+#define AST_TYPES_H
 #include "builtin.h"
 #include "symtab.h"
+#include "token_types.h"
 
 /**
  * note that value type is different form variable type
@@ -10,32 +13,6 @@ typedef enum VALUE_TYPE {
     VAL_INTEGER,
     VAL_FLOAT,
 } VALUE_TYPE;
-
-/**
- * operator of an unary expression 
- * unary_op = "-" | "+";
- */
-typedef enum UNARY_OP_TYPE {
-    // '+'
-    UNARY_OP_POS,
-    // '-'
-    UNARY_OP_NEG,
-} UNARY_OP_TYPE;
-
-/**
- * operator of binary expression 
- * bin_op = "-" | "+" | "*" | "/";
- */
-typedef enum BIN_OP_TYPE {
-    // '+'
-    BIN_OP_ADD,
-    // '-'
-    BIN_OP_SUB,
-    // '/'
-    BIN_OP_DIV,
-    // '*'
-    BIN_OP_MUL,
-} BIN_OP_TYPE;
 
 /* type of parenthesis */
 typedef enum PARENTHESIS {
@@ -83,7 +60,7 @@ typedef struct Value {
  * unary_expr = unary_op, expression;
  */
 typedef struct UnaryExpr {
-    UNARY_OP_TYPE op;
+    UnOpType op;
     struct Expr *oprand;
 } UnaryExpr;
 
@@ -91,7 +68,7 @@ typedef struct UnaryExpr {
  * bin_expr = expression, bin_op, expression;
  */
 typedef struct BinExpr {
-    BIN_OP_TYPE op;
+    BinOpType op;
     struct Expr *lhs;
     struct Expr *rhs;
 } BinExpr;
@@ -102,7 +79,7 @@ typedef struct BinExpr {
  * TODO: determain whether to add a priority field here
  */
 typedef struct ParenthesesExpr {
-    struct Expr *content;
+    struct Expr *inside_expr;
 } ParenthesesExpr;
 
 /**
@@ -111,12 +88,14 @@ typedef struct ParenthesesExpr {
  */
 typedef struct Expr {
     EXPR_TYPE type;
+    struct Expr *parent;
     union {
         struct BinExpr bin_expr;
         struct UnaryExpr unary_expr;
         struct ParenthesesExpr paren_expr;
         struct Value value;
-        size_t var_symid;
+        // symbol 
+        size_t name_idx;
     } content;
 } Expr;
 
@@ -125,8 +104,8 @@ typedef struct Expr {
  * arg_list = ("(", ")") | "(", {expression, ","}, expression, ")";
  */
 typedef struct ProcedureCall {
-    BUILTIN_FUNC func;
-    struct Expr arg;
+    unsigned int name_idx;
+    struct Expr *arg;
 } ProcedureCall;
 
 /**
@@ -138,7 +117,8 @@ typedef struct Assignment {
 } Assignment;
 
 typedef struct Declaration {
-    int sym_idx;
+    DeclType type;
+    int name_idx;
 } Declaration;
 
 /**
@@ -157,6 +137,8 @@ typedef struct Statement {
  * program is a set of statement splited with ';' and end with '.'
  */
 typedef struct Program {
-    int stats_num;
-    struct Statement *stats;
+    Pool *exprs;
+    Pool *statements;
 } Program;
+
+#endif

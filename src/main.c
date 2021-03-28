@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include "tokenize.h"
+#include "ast.h"
 
 #define DEBUG
 
@@ -12,8 +13,8 @@ int main(int argc, char **argv) {
     Project *proj = create_project(argc, argv);
     tokenize(proj);
 
+    log_success("Tokenize finished.\n");
 #ifdef DEBUG
-    log_success("Tokenize finished, result is:\n");
     Token *t;
     FOR_EACH(t, proj->tokens) {
         switch (t->type) {
@@ -48,10 +49,10 @@ int main(int argc, char **argv) {
                 printf("binop ");
                 break;
             case TOKEN_LPAREN:
-                printf("( ");
+                printf("(%ld ", t->content.rparen_idx);
                 break;
             case TOKEN_RPAREN:
-                printf(") ");
+                printf("%ld) ", pool_idx(proj->tokens, t));
                 break;
             default:
                 printf("none ");
@@ -59,8 +60,19 @@ int main(int argc, char **argv) {
         }
     }
     reset_iter(proj->tokens);
+    printf("\n");
 #endif
 
+    gen_program(proj);
+
+    Statement *s;
+    log_success("AST generation finished.\n");
+
+    FOR_EACH(s, proj->program->statements) {
+        if (s->type == STAT_ASSIGN) {
+            pretty_print_ast(proj->strtab, s->content.assign.src);
+        }
+    }
     // release all sources
     FREE(proj);
     return 0;

@@ -40,15 +40,20 @@ Output 2:
 
 ## 问题分析
 
+### 文法定义
+
 首先给出文法ebnf定义
 
 ```ebnf
 program           = {statement, ";"}, statement, ".";
 
-statement         = assignment | procedure_call;
+statement         = assignment | procedure_call | declaration;
+
+declaration       = decl_keyword, symbol;
 assignment        = symbol, "=", expression;
 procedure_call    = symbol, "(", expression ")";
 
+decl_keyword      = "float" | "int";
 expression        = unary_expr | bin_expr | parentheses_expr | value | symbol;
 
 parentheses_expr  = "(", expression, ")";
@@ -76,6 +81,39 @@ integer           = digit, {digit};
 float             = digit, {digit}, ".", digit, {digit};
 ```
 
+### 源代码转token
+
 由EBNF定义得到解析token的自动机构造如下：
 
 ![](./resources/token_automaton.svg)
+
+实现自动机引擎，对源代码进行解析即可
+
+### 生成AST
+
+为了生成AST，我们需要`LL(k)`文法，本例中为`LL(2)`，为此需要将原本的文法`expression`的定义进行间接左递归消除，同时将`symbol, integer, float, ops, '(', ')'`当作终结符。与消除后的文法如下：
+
+```ebnf
+program           = {statement, ";"}, statement, ".";
+
+statement         = assignment | procedure_call | declaration;
+
+declaration       = decl_keyword, symbol;
+assignment        = symbol, "=", expression;
+procedure_call    = symbol, "(", expression ")";
+
+decl_keyword      = "float" | "int";
+
+expression        = unary_expr | parentheses_expr | value | symbol | bin_expr;
+
+parentheses_expr  = "(", expression, ")";
+
+unary_op          = "-" | "+";
+unary_expr        = unary_op, expression;
+
+bin_op            = "-" | "+" | "*" | "/";
+bin_expr          = (parenthese_expr | unary_expr | value | symbol) binop expression;
+```
+
+根据上述文法即可写出生成AST的parser
+

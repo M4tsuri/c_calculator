@@ -5,11 +5,15 @@ void delete_project(Project *proj) {
     FREE(proj->strtab);
     FREE(proj->tokens);
     FREE(proj->symtab);
+    FREE(proj->program->exprs);
+    FREE(proj->program->statements);
+    free(proj->program);
     free(proj);
 }
 
 Project *create_project(int argc, char **argv) {
     Project *proj = (Project *) s_malloc(sizeof(Project));
+    proj->program = (Program *) s_malloc(sizeof(Program));
     proj->source_file = get_src(argc, argv);
     proj->output_file = get_dest(argc, argv);
 

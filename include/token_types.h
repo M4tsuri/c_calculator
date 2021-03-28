@@ -1,3 +1,6 @@
+#ifndef TOKEN_TYPES_H
+#define TOKEN_TYPES_H
+
 typedef enum DeclType {
     DECL_INT,
     DECL_FLOAT,
@@ -58,3 +61,4 @@ typedef struct Token {
     } content;
 } Token;
 
+#endif

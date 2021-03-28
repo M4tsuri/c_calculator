@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "project.h"
 
+#define MAX_PAREN_NUM 32
+
 /**
  * create a Buffer object from a opened file
  * @param src: the file struct
