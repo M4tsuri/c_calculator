@@ -46,33 +46,21 @@ void log_success(const char *msg, ...) {
 
 FILE *get_src(int argc, char **argv) {
     FILE *file = NULL;
-    for (int i = 0; i < argc; ++i) {
-        if (strcmp(argv[i], "-f") == 0) {
-            file = fopen(argv[i + 1], "r");
-            if (file == NULL) {
-                log_error("specified file not found or corrupted.");
-                exit(-1);
-            }
-            return file;
-        }
+    file = fopen(argv[1], "r");
+    if (file == NULL) {
+        log_error("specified file not found or corrupted.");
+        exit(-1);
     }
-    log_error("please specify an input file with -f [file].");
-    exit(-1);
+    return file;
 }
 
 FILE *get_dest(int argc, char **argv) {
     FILE *file = NULL;
-    for (int i = 0; i < argc; ++i) {
-        if (strcmp(argv[i], "-o") == 0) {
-            file = fopen(argv[i + 1], "w");
-            if (file == NULL) {
-                panic(0, "cannot open output file, check your permmision.");
-            }
-            return file;
-        }
+    file = fopen(argv[2], "w");
+    if (file == NULL) {
+        panic(0, "cannot open output file, check your permmision.");
     }
-    log_error("please specify an output file with -o [file].");
-    exit(-1);
+    return file;
 }
 
 // add extra null pointer check on original malloc function

@@ -7,7 +7,6 @@
 #include "ast.h"
 #include "execute.h"
 
-#define DEBUG
 
 int main(int argc, char **argv) {
     
@@ -26,7 +25,7 @@ int main(int argc, char **argv) {
                 printf("dsymbol(%s) ", strtab_get(proj->strtab, t->content.name_idx));
                 break;
             case TOKEN_SEMICOLON:
-                printf("; ");
+                printf(";\n");
                 break;
             case TOKEN_END:
                 printf(". ");
@@ -69,6 +68,7 @@ int main(int argc, char **argv) {
     Statement *s;
     log_success("AST generation finished.\n");
 
+#ifdef DEBUG
     FOR_EACH(s, proj->program->statements) {
         if (s->type == STAT_ASSIGN) {
             pretty_print_ast(proj, s->content.assign.src);
@@ -76,8 +76,11 @@ int main(int argc, char **argv) {
         }
     }
     reset_iter(proj->program->statements);
+#endif
 
     exec_ast(proj);
+    log_success("AST execution finished, result saved.\n");
+
     // release all sources
     FREE(proj);
     return 0;
