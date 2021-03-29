@@ -1,149 +1,81 @@
 #include "project.h"
 
-Value val_div(Value *lhs, Value *rhs) {
-    Value res;
-    if (lhs->type == VAL_BOT || rhs->type == VAL_BOT) {
-        res.type = VAL_BOT;
+bool is_zero(Value *val) {
+    if (val->type == VAL_INTEGER) {
+        return val->content.int_val == 0;
+    } else if (val->type == VAL_FLOAT) {
+        return val->content.float_val == 0.0;
     }
-
-    if (lhs->type == VAL_TOP || rhs->type == VAL_TOP) {
-        res.type = VAL_TOP;
-    }
-
-    if (lhs->type == VAL_FLOAT || rhs->type == VAL_FLOAT) {
-        res.type = VAL_FLOAT;
-
-        float lval = lhs->content.float_val;
-        float rval = rhs->content.float_val;
-        if (lhs->type == VAL_INTEGER) {
-            lval = (long double)lhs->content.int_val;
-        }
-        if (rhs->type == VAL_INTEGER) {
-            rval = (long double)rhs->content.int_val;
-        }
-
-        if (rval == 0.0) {
-            res.type = VAL_TOP;
-            return res;
-        }
-
-        res.content.float_val = lval / rval;
-        return res;
-    } 
-
-    if (rhs->content.int_val == 0) {
-        res.type = VAL_TOP;
-        return res;
-    }
-    res.type = VAL_INTEGER;
-    res.content.int_val = lhs->content.int_val / rhs->content.int_val;
-    return res;
-}
-
-Value val_sub(Value *lhs, Value *rhs) {
-    Value res;
-    if (lhs->type == VAL_BOT || rhs->type == VAL_BOT) {
-        res.type = VAL_BOT;
-    }
-
-    if (lhs->type == VAL_TOP || rhs->type == VAL_TOP) {
-        res.type = VAL_TOP;
-    }
-
-    if (lhs->type == VAL_FLOAT || rhs->type == VAL_FLOAT) {
-        res.type = VAL_FLOAT;
-
-        float lval = lhs->content.float_val;
-        float rval = rhs->content.float_val;
-        if (lhs->type == VAL_INTEGER) {
-            lval = (long double)lhs->content.int_val;
-        }
-        if (rhs->type == VAL_INTEGER) {
-            rval = (long double)rhs->content.int_val;
-        }
-
-        res.content.float_val = lval - rval;
-        return res;
-    } 
-
-    res.type = VAL_INTEGER;
-    res.content.int_val = lhs->content.int_val - rhs->content.int_val;
-    return res;
-}
-
-Value val_mul(Value *lhs, Value *rhs) {
-    Value res;
-    if (lhs->type == VAL_BOT || rhs->type == VAL_BOT) {
-        res.type = VAL_BOT;
-    }
-
-    if (lhs->type == VAL_TOP || rhs->type == VAL_TOP) {
-        res.type = VAL_TOP;
-    }
-
-    if (lhs->type == VAL_FLOAT || rhs->type == VAL_FLOAT) {
-        res.type = VAL_FLOAT;
-
-        float lval = lhs->content.float_val;
-        float rval = rhs->content.float_val;
-        if (lhs->type == VAL_INTEGER) {
-            lval = (long double)lhs->content.int_val;
-        }
-        if (rhs->type == VAL_INTEGER) {
-            rval = (long double)rhs->content.int_val;
-        }
-
-        res.content.float_val = lval * rval;
-        return res;
-    } 
-
-    res.type = VAL_INTEGER;
-    res.content.int_val = lhs->content.int_val * rhs->content.int_val;
-    return res;
-}
-
-Value val_add(Value *lhs, Value *rhs) {
-    Value res;
-    if (lhs->type == VAL_BOT || rhs->type == VAL_BOT) {
-        res.type = VAL_BOT;
-    }
-
-    if (lhs->type == VAL_TOP || rhs->type == VAL_TOP) {
-        res.type = VAL_TOP;
-    }
-
-    if (lhs->type == VAL_FLOAT || rhs->type == VAL_FLOAT) {
-        res.type = VAL_FLOAT;
-
-        float lval = lhs->content.float_val;
-        float rval = rhs->content.float_val;
-        if (lhs->type == VAL_INTEGER) {
-            lval = (long double)lhs->content.int_val;
-        }
-        if (rhs->type == VAL_INTEGER) {
-            rval = (long double)rhs->content.int_val;
-        }
-
-        res.content.float_val = lval + rval;
-        return res;
-    } 
-
-    res.type = VAL_INTEGER;
-    res.content.int_val = lhs->content.int_val + rhs->content.int_val;
-    return res;
+    return false;
 }
 
 Value exec_binop(BinOpType op, Value *lhs, Value *rhs) {
+    Value res;
+
+    // check for unexpected divided by zero
+    if (is_zero(rhs) && op == BINOP_DIV) {
+        res.type = VAL_TOP;
+        return res;
+    }
+
+    if (lhs->type == VAL_BOT || rhs->type == VAL_BOT) {
+        res.type = VAL_BOT;
+        return res;
+    }
+
+    if (lhs->type == VAL_TOP || rhs->type == VAL_TOP) {
+        res.type = VAL_TOP;
+        return res;
+    }
+
+    if (lhs->type == VAL_FLOAT || rhs->type == VAL_FLOAT) {
+        res.type = VAL_FLOAT;
+
+        float lval = lhs->content.float_val;
+        float rval = rhs->content.float_val;
+        if (lhs->type == VAL_INTEGER) {
+            lval = (long double)lhs->content.int_val;
+        }
+        if (rhs->type == VAL_INTEGER) {
+            rval = (long double)rhs->content.int_val;
+        }
+
+        switch (op) {
+            case BINOP_ADD:
+                res.content.float_val = lval + rval;
+                break;
+            case BINOP_DIV:
+                res.content.float_val = lval / rval;
+                break;
+            case BINOP_MUL:
+                res.content.float_val = lval * rval;
+                break;
+            case BINOP_SUB:
+                res.content.float_val = lval - rval;
+                break;
+        }
+        
+        return res;
+    } 
+
+    res.type = VAL_INTEGER;
+    int lval = lhs->content.int_val;
+    int rval = rhs->content.int_val;
     switch (op) {
         case BINOP_ADD:
-            return val_add(lhs, rhs);
+            res.content.int_val = lval + rval;
+            break;
         case BINOP_DIV:
-            return val_div(lhs, rhs);
+            res.content.int_val = lval / rval;
+            break;
         case BINOP_MUL:
-            return val_mul(lhs, rhs);
+            res.content.int_val = lval * rval;
+            break;
         case BINOP_SUB:
-            return val_sub(lhs, rhs);
+            res.content.int_val = lval - rval;
+            break;
     }
+    return res;
 }
 
 Value val_neg(Value *oprand) {
