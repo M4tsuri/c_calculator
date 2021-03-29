@@ -27,7 +27,7 @@ int symtab_find(SymbolTable *symtab, unsigned int name_idx) {
 }
 
 int symtab_push(SymbolTable *symtab, Symbol *s) {
-    if (symtab_find(symtab, s->name_idx)) {
+    if (symtab_find(symtab, s->name_idx) != -1) {
         return -1;
     }
 

@@ -29,7 +29,12 @@ bool gen_expr(Project *proj, Expr **expr_ptr) {
         case TOKEN_RSYMBOL:
             pool_next(proj->tokens);
             may_lhs->type = EXPR_SYMBOL;
-            may_lhs->content.name_idx = cur->content.name_idx;
+            int sym_idx = symtab_find(proj->symtab, cur->content.name_idx);
+            if (sym_idx == -1) {
+                panic(cur->line, "variable used without declaration.");
+            }
+
+            may_lhs->content.sym_idx = sym_idx;
             break;
         default:
             panic(cur->line, "internal error: token corrupted when parsing expression.");
@@ -53,7 +58,7 @@ bool gen_expr(Project *proj, Expr **expr_ptr) {
         expr->type = may_lhs->type;
         expr->content = may_lhs->content;
     }
-    
+
     return true;
 }
 
@@ -83,7 +88,17 @@ bool gen_decl(Project *proj, Declaration *decl) {
 
     // TODO: do we need a check here?
     decl->type = key->content.decl;
-    decl->name_idx = name->content.name_idx;
+
+    Symbol dsym;
+    dsym.name_idx = name->content.name_idx;
+    dsym.type = decl->type;
+    
+    int sym_idx = symtab_push(proj->symtab, &dsym);
+    if (sym_idx == -1) {
+        panic(name->line, "duplicated declaration of symbol.");
+    }
+
+    decl->sym_idx = sym_idx;
 
     return true;
 }
@@ -93,13 +108,19 @@ bool gen_assign(Project *proj, Assignment *assign) {
     // eat '='
     pool_next(proj->tokens);
 
-    assign->dest_idx = target->content.name_idx;
+    int dsym_idx = symtab_find(proj->symtab, target->content.name_idx);
+    if (dsym_idx == -1) {
+        panic(target->line, "variable assigned without declaration.");
+    }
+
+    assign->dest_idx =  dsym_idx;
     return gen_expr(proj, &assign->src);
 }
 
 bool gen_call(Project *proj, ProcedureCall *call) {
     Token *func = pool_next(proj->tokens);
 
+    // TODO: add support for function symbol
     call->name_idx = func->content.name_idx;
     return gen_expr(proj, &call->arg);
 }
@@ -239,9 +260,9 @@ Expr *get_expr_root(Expr *cur) {
  *         +
  *       /  \
  *     /     \
- *    *      *
- *  /  \   /  \
- * 4    3 1    2
+ *    *       *
+ *  /  \    /  \
+ * 1    2  3    4
  * 
  * we will recursively apply this retation on each sub expression to fix the precedence
  */
@@ -300,26 +321,26 @@ void pretty_print_binop(BinOpType op) {
     }
 }
 
-void pretty_print_ast(StringTable *strtab, Expr *expr) {
+void pretty_print_ast(Project *proj, Expr *expr) {
     switch (expr->type) {
         case EXPR_BINARY:
             pretty_print_binop(expr->content.bin_expr.op);
             printf(" (");
-            pretty_print_ast(strtab, expr->content.bin_expr.lhs);
-            pretty_print_ast(strtab, expr->content.bin_expr.rhs);
+            pretty_print_ast(proj, expr->content.bin_expr.lhs);
+            pretty_print_ast(proj, expr->content.bin_expr.rhs);
             printf(") ");
             break;
         case EXPR_PARENTHESES:
             printf(" (");
-            pretty_print_ast(strtab, expr->content.paren_expr.inside_expr);
+            pretty_print_ast(proj, expr->content.paren_expr.inside_expr);
             printf(") ");
             break;
         case EXPR_SYMBOL:
-            printf(" %s ", strtab_get(strtab, expr->content.name_idx));
+            printf(" %s ", strtab_get(proj->strtab, symtab_get(proj->symtab, expr->content.sym_idx)->name_idx));
             break;
         case EXPR_UNARY:
             pretty_print_unop(expr->content.unary_expr.op);
-            pretty_print_ast(strtab, expr->content.unary_expr.oprand);
+            pretty_print_ast(proj, expr->content.unary_expr.oprand);
             break;
         case EXPR_VALUE:
             printf(" %Lf ", expr->content.value.content.float_val);

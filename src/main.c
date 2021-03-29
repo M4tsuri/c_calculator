@@ -70,7 +70,8 @@ int main(int argc, char **argv) {
 
     FOR_EACH(s, proj->program->statements) {
         if (s->type == STAT_ASSIGN) {
-            pretty_print_ast(proj->strtab, s->content.assign.src);
+            pretty_print_ast(proj, s->content.assign.src);
+            printf("\n");
         }
     }
     // release all sources

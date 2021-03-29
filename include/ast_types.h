@@ -95,7 +95,7 @@ typedef struct Expr {
         struct ParenthesesExpr paren_expr;
         struct Value value;
         // symbol 
-        size_t name_idx;
+        size_t sym_idx;
     } content;
 } Expr;
 
@@ -118,7 +118,7 @@ typedef struct Assignment {
 
 typedef struct Declaration {
     DeclType type;
-    int name_idx;
+    int sym_idx;
 } Declaration;
 
 /**

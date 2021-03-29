@@ -4,12 +4,6 @@
 
 typedef unsigned int TidType;
 
-/* we support integer and float number now */
-typedef enum VARIABLE_TYPE {
-    VAR_INTEGER,
-    VAR_FLOAT,
-} VARIABLE_TYPE;
-
 /**
  * a symbol can be either a function or a variable containing a plain value
  */
@@ -18,12 +12,6 @@ typedef enum SYMBOL_TYPE {
     SYM_FUNCTION,
 } SYMBOL_TYPE;
 
-/* a variable represents either an integer or a float number */
-typedef struct VariableSym {
-    TidType tid;
-    VARIABLE_TYPE type;
-} VariableSym;
-
 /**
  * a symbol is an abstract of variables defined in program
  * each symbol has a tid to symplify program analysis
@@ -31,9 +19,6 @@ typedef struct VariableSym {
 typedef struct Symbol {
     SYMBOL_TYPE type;
     unsigned int name_idx;
-    union {
-        struct VariableSym variable;
-    } content;
 } Symbol;
 
 typedef struct SymbolTable {
