@@ -1,8 +1,8 @@
 #ifndef AST_TYPES_H
 #define AST_TYPES_H
 #include "builtin.h"
-#include "symtab.h"
 #include "token_types.h"
+#include "pool.h"
 
 /**
  * note that value type is different form variable type
@@ -12,7 +12,32 @@
 typedef enum VALUE_TYPE {
     VAL_INTEGER,
     VAL_FLOAT,
+    VAL_BOT,
+    VAL_TOP
 } VALUE_TYPE;
+
+/**
+ * represents a plain value in program or a value stored in a variable
+ */
+typedef struct Value {
+    VALUE_TYPE type;
+    union {
+        long long int int_val;
+        long double float_val;
+    } content;
+} Value;
+
+/**
+ * a symbol is an abstract of variables defined in program
+ * each symbol has a tid to symplify program analysis
+ */
+typedef struct Symbol {
+    DeclType type;
+    unsigned int name_idx;
+    union {
+        struct Value value;
+    } content;
+} Symbol;
 
 /* type of parenthesis */
 typedef enum PARENTHESIS {
@@ -45,16 +70,6 @@ typedef enum STAT_TYPE {
 } STAT_TYPE;
 
 
-/**
- * represents a plain value in program or a value stored in a variable
- */
-typedef struct Value {
-    VALUE_TYPE type;
-    union {
-        long long int int_val;
-        long double float_val;
-    } content;
-} Value;
 
 /**
  * unary_expr = unary_op, expression;

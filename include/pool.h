@@ -1,3 +1,5 @@
+#ifndef POOL_H
+#define POOL_H
 #include <stdlib.h>
 
 /**
@@ -60,3 +62,4 @@ void delete_pool(Pool *p);
 void *pool_get(Pool *p, size_t idx);
 
 size_t pool_idx(Pool *p, void *ptr);
+#endif

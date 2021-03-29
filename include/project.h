@@ -3,7 +3,7 @@
 #include "buffer.h"
 #include "strtab.h"
 #include "ast_types.h"
-#include "token_types.h"
+#include "symtab.h"
 #include <stdbool.h>
 
 typedef struct Project {

@@ -11,8 +11,6 @@ SymbolTable *create_symtab() {
     symtab->capacity = DEFAULT_MAX_SYMTAB_ITEM_NUM;
     symtab->symbols = (Symbol *) s_malloc(symtab->capacity * sizeof(Symbol));
     symtab->sym_num = 0;
-    symtab->max_func_tid = 0;
-    symtab->max_var_tid = 0;
     symtab->free = delete_symtab;
     return symtab;
 }
@@ -26,6 +24,30 @@ int symtab_find(SymbolTable *symtab, unsigned int name_idx) {
     return -1;
 }
 
+void symtab_assign(SymbolTable *symtab, int sym_idx, Value *val) {
+    Symbol *s = symtab_get(symtab, sym_idx);
+    switch (s->type) {
+        case DECL_FLOAT:
+            if (val->type == VAL_INTEGER) {
+                s->content.value.content.float_val = (long double)val->content.int_val;
+                s->content.value.type = VAL_FLOAT;
+            } else {
+                s->content.value = *val;
+            }
+            break;
+        case DECL_INT:
+            if (val->type == VAL_FLOAT) {
+                s->content.value.content.int_val = (long long int)val->content.float_val;
+                s->content.value.type = VAL_INTEGER;
+            } else {
+                s->content.value = *val;
+            }
+            break;
+        default:
+            panic(0, "not implemented.");
+    }
+}
+
 int symtab_push(SymbolTable *symtab, Symbol *s) {
     if (symtab_find(symtab, s->name_idx) != -1) {
         return -1;
@@ -37,11 +59,6 @@ int symtab_push(SymbolTable *symtab, Symbol *s) {
     }
     memcpy(&symtab->symbols[symtab->sym_num], s, sizeof(Symbol));
     symtab->sym_num++;
-    if (s->type == SYM_FUNCTION) {
-        symtab->max_func_tid++;
-    } else {
-        symtab->max_var_tid++;
-    }
 
     return symtab->sym_num - 1;
 }

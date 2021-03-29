@@ -92,6 +92,7 @@ bool gen_decl(Project *proj, Declaration *decl) {
     Symbol dsym;
     dsym.name_idx = name->content.name_idx;
     dsym.type = decl->type;
+    dsym.content.value.type = VAL_BOT;
     
     int sym_idx = symtab_push(proj->symtab, &dsym);
     if (sym_idx == -1) {
@@ -122,7 +123,11 @@ bool gen_call(Project *proj, ProcedureCall *call) {
 
     // TODO: add support for function symbol
     call->name_idx = func->content.name_idx;
-    return gen_expr(proj, &call->arg);
+    // eat '('
+    pool_next(proj->tokens);
+    gen_expr(proj, &call->arg);
+    // eat ')'
+    pool_next(proj->tokens);
 }
 
 bool gen_stat(Project *proj, Statement *stat) {
@@ -248,6 +253,7 @@ Expr *get_expr_root(Expr *cur) {
  * an expression like 1 * 2 + 3 * 4 will be interpretered as
  * 1 * (2 + (3 * 4)), which is not appreciated
  * In this function, we rotate each tree of expression
+ * 
  * a tree like
  *    *
  *  /  \

@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include "tokenize.h"
 #include "ast.h"
+#include "execute.h"
 
 #define DEBUG
 
@@ -74,6 +75,9 @@ int main(int argc, char **argv) {
             printf("\n");
         }
     }
+    reset_iter(proj->program->statements);
+
+    exec_ast(proj);
     // release all sources
     FREE(proj);
     return 0;

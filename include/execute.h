@@ -1,0 +1,1 @@
+void exec_ast(Project *proj);

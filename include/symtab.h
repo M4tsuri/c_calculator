@@ -1,25 +1,11 @@
+#ifndef SYMTAB_H
+#define SYMTAB_H
 #include "pool.h"
 #include "utils.h"
+#include "ast_types.h"
 #define DEFAULT_MAX_SYMTAB_ITEM_NUM 0x40
 
 typedef unsigned int TidType;
-
-/**
- * a symbol can be either a function or a variable containing a plain value
- */
-typedef enum SYMBOL_TYPE {
-    SYM_VARIABLE_TYPE,
-    SYM_FUNCTION,
-} SYMBOL_TYPE;
-
-/**
- * a symbol is an abstract of variables defined in program
- * each symbol has a tid to symplify program analysis
- */
-typedef struct Symbol {
-    SYMBOL_TYPE type;
-    unsigned int name_idx;
-} Symbol;
 
 typedef struct SymbolTable {
     int capacity;
@@ -50,3 +36,6 @@ Symbol *symtab_get(SymbolTable *symtab, size_t idx);
  * @return the index of the symbol, -1 if symbol not in symtab
  */
 int symtab_find(SymbolTable *symtab, unsigned int name_idx);
+
+void symtab_assign(SymbolTable *symtab, int sym_idx, Value *val);
+#endif
